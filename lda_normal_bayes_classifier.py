@@ -6,10 +6,12 @@
 # propuesto en el Ejercicio1 de la práctica. Habrá que terminar la implementación
 # Modificar como se crea conveniente (incluyendo métodos y parámetros), únicamente es una guía.
 
+from pyexpat import features
+
 import cv2
 import numpy as np
 from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
-from .ocr_classifier import OCRClassifier
+from ocr_classifier import OCRClassifier
 
 class LdaNormalBayesClassifier(OCRClassifier):
     """
@@ -44,16 +46,17 @@ class LdaNormalBayesClassifier(OCRClassifier):
             # Asumimos que el contorno más grande es la letra
             c = max(contornos, key=cv2.contourArea)
             x, y, w, h = cv2.boundingRect(c)
-            recorte = gray[y:y+h, x:x+w]
+            recorte = thresh[y:y+h, x:x+w]
         else:
             # Si falla, usamos la imagen original
-            recorte = gray
+            recorte = thresh
 
         # 4. Redimensionar a tamaño fijo (25x25)
         resized = cv2.resize(recorte, self.ocr_char_size)
 
         # 5. Aplanar a un vector de 1 dimensión (tamaño 625)
-        vector_caracteristicas = resized.flatten()
+        vector_caracteristicas = resized.flatten().astype(np.float32) / 255.0
+
         return vector_caracteristicas
 
     def train(self, images_dict):
@@ -67,14 +70,15 @@ class LdaNormalBayesClassifier(OCRClassifier):
 
         # Take training images and do feature extraction
         
-        X = ... # Feature vectors by rows
-        y = ... # Labels for each row in X 
+        X = [] # Feature vectors by rows
+        y = [] # Labels for each row in X 
 
         # 1. Construir las matrices C (características) y E (etiquetas)
-        for char_key, list_images in images_dict.items():
+        for char_key in sorted(images_dict.keys()):
+            list_images = images_dict[char_key]
             label = self.char2label(char_key)
             for img in list_images:
-                features = self._extraer_caracteristicas(img)
+                features = self._extraer_caracteristicas(img).astype(np.float64)
                 X.append(features)
                 y.append(label)
         # Scikit-learn acepta float64 (por defecto en np), pero preparamos el array
@@ -100,36 +104,21 @@ class LdaNormalBayesClassifier(OCRClassifier):
         return samples, labels
 
     def predict(self, img):
-        """.
-        Given a single image of a character already cropped classify it.
 
-        :img Image to classify
-        
-        """
-        
-        # 1. Extraer características (escala de grises, umbral, recorte, resize a 25x25 y aplanado)
-        # Usamos la función auxiliar que te pasé en el mensaje anterior
-        features = self._extraer_caracteristicas(img)
-        
-        # 2. Scikit-learn (LDA) espera una matriz 2D (varias filas), 
-        # así que metemos nuestra única imagen dentro de unos corchetes [ ]
+    # 1. Extraer características
+        features = self._extraer_caracteristicas(img).astype(np.float64)
+
+    # 2. Convertir a matriz 2D
         features_matriz = np.array([features], dtype=np.float64)
 
-        # 3. Reducir la dimensión usando el modelo LDA que ya entrenamos antes
+    # 3. Reducir dimensión con LDA
         features_reduced = self.lda.transform(features_matriz)
 
-        # 4. Convertir a float32 OBLIGATORIAMENTE para que el Bayes de OpenCV lo acepte
+    # 4. Convertir a float32 para OpenCV
         features_reduced_cv = np.array(features_reduced, dtype=np.float32)
 
-        # 5. AQUÍ ESTÁ TU "y = ..."
-        # Le pasamos la característica reducida al clasificador entrenado
+    # 5. Predecir
         _, results = self.classifier.predict(features_reduced_cv)
 
-        # OpenCV devuelve los resultados dentro de una matriz 2D (ej: [[3.0]])
-        # Extraemos el valor para devolverlo como un entero (ej: 3)
-        y = results[0][0]
-
-        return int(y)
-
-
+        return int(results[0][0])
 
