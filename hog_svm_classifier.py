@@ -1,3 +1,5 @@
+from fileinput import filename
+
 import cv2
 import numpy as np
 from skimage.feature import hog
@@ -51,3 +53,8 @@ class HogSvmClassifier(OCRClassifier):
         feat = self._hog_features(img).reshape(1, -1).astype(np.float32)
         ret, pred = self.svm.predict(feat)
         return int(pred[0][0])
+    def save(self, filename):
+        self.svm.save(filename)
+
+    def load(self, filename):
+        self.svm = cv2.ml.SVM_load(filename)
