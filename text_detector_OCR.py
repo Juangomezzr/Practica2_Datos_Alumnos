@@ -1,6 +1,7 @@
 import cv2
 import numpy as np
 from hog_svm_classifier import HogSvmClassifier
+##python text_detector_OCR.py
 
 
 # ============================================================
@@ -15,28 +16,27 @@ def nms(boxes, overlapThresh=0.3):
     y1 = boxes_np[:,1]
     x2 = boxes_np[:,0] + boxes_np[:,2]
     y2 = boxes_np[:,1] + boxes_np[:,3]
-
     areas = (x2 - x1 + 1) * (y2 - y1 + 1)
-    idxs = np.argsort(y2)
+
+    # Ordenar por ÁREA descendente (más grande primero)
+    idxs = np.argsort(areas)[::-1]
 
     pick = []
-
     while len(idxs) > 0:
-        last = idxs[-1]
+        last = idxs[0]
         pick.append(last)
 
-        xx1 = np.maximum(x1[last], x1[idxs[:-1]])
-        yy1 = np.maximum(y1[last], y1[idxs[:-1]])
-        xx2 = np.minimum(x2[last], x2[idxs[:-1]])
-        yy2 = np.minimum(y2[last], y2[idxs[:-1]])
+        xx1 = np.maximum(x1[last], x1[idxs[1:]])
+        yy1 = np.maximum(y1[last], y1[idxs[1:]])
+        xx2 = np.minimum(x2[last], x2[idxs[1:]])
+        yy2 = np.minimum(y2[last], y2[idxs[1:]])
 
         w = np.maximum(0, xx2 - xx1 + 1)
         h = np.maximum(0, yy2 - yy1 + 1)
+        overlap = (w * h) / areas[idxs[1:]]
 
-        overlap = (w * h) / areas[idxs[:-1]]
-
-        idxs = np.delete(idxs, np.concatenate(([len(idxs)-1],
-            np.where(overlap > overlapThresh)[0])))
+        idxs = np.delete(idxs, np.concatenate(
+            ([0], np.where(overlap > overlapThresh)[0] + 1)))
 
     return [boxes[i] for i in pick]
 
@@ -79,30 +79,28 @@ def detectar_caracteres(img):
     mser.setMinArea(60)
     mser.setMaxArea(5000)
     regiones, _ = mser.detectRegions(gray)
-
     boxes = []
     for p in regiones:
         x, y, w, h = cv2.boundingRect(p.reshape(-1,1,2))
         area = w*h
         ratio = h / float(w)
-        if 80 < area < 5000 and 0.6 < ratio < 5.0 and 8 < w < 70 and 10 < h < 100:
+        if 80 < area < 5000 and 0.90 < ratio < 5.0 and 5 < w < 70 and 12 < h < 100:
             boxes.append((x, y, w, h))
-            print(f"  MSER ({x},{y},{w},{h}) area={area} ratio={ratio:.2f} -> {'ENTRA' if 80 < area < 5000 and 0.6 < ratio < 5.0 and 8 < w < 70 and 10 < h < 100 else 'FILTRADO'}")
+
+            print(f"  MSER ({x},{y},{w},{h}) area={area} ratio={ratio:.2f} -> {'ENTRA' if 150 < area < 5000 and 0.90 < ratio < 5.0 and 8 < w < 70 and 12 < h < 100 else 'FILTRADO'}")
 
     # ---- Canny complementario ----
     # ---- Canny complementario ----
-    # ---- Canny complementario ----
     edges = cv2.Canny(gray, 40, 120)
-    # Sin dilatar - usar edges directamente
     contornos, _ = cv2.findContours(edges, cv2.RETR_CCOMP, cv2.CHAIN_APPROX_SIMPLE)
 
     for c in contornos:
         x, y, w, h = cv2.boundingRect(c)
         area = w*h
         ratio = h / float(w)
-        if 80 < area < 5000 and 0.6 < ratio < 5.0 and 8 < w < 70 and 10 < h < 100:
+        if 80 < area < 5000 and 0.90 < ratio < 5.0 and 5 < w < 70 and 12 < h < 100:
             boxes.append((x, y, w, h))
-            print(f"  Canny ({x},{y},{w},{h}) area={area} ratio={ratio:.2f} -> {'ENTRA' if 80 < area < 5000 and 0.6 < ratio < 5.0 and 8 < w < 70 and 10 < h < 100 else 'FILTRADO'}")
+            print(f"  Canny ({x},{y},{w},{h}) area={area} ratio={ratio:.2f} -> {'ENTRA' if 150 < area < 5000 and 0.90 < ratio < 5.0 and 8 < w < 70 and 12 < h < 100 else 'FILTRADO'}")
 
     # ---- Filtro de densidad de bordes ----
     cajas_filtradas = []
@@ -120,7 +118,7 @@ def detectar_caracteres(img):
 
 
 if __name__ == "__main__":
-    img = cv2.imread("test_ocr_panels/00003_0.png")
+    img = cv2.imread("test_ocr_panels/00057_1.png")
 
     boxes, img, clean = detectar_caracteres(img)
     print("Caracteres detectados:", len(boxes))
@@ -149,26 +147,38 @@ if __name__ == "__main__":
         for (x, y, w, h) in linea:
 
             roi = clean[y:y+h, x:x+w]
-
-            # ---- Filtro de borde de imagen ----
-            img_h, img_w = clean.shape[:2]
-            margen = 15
-            if x < margen or y < margen or (x+w) > (img_w-margen) or (y+h) > (img_h-margen):
-                continue
-
             # ---- Filtro geométrico ----
             ratio = h / float(w)
             area = w * h
             elongacion = max(w, h) / float(min(w, h))
 
-            if ratio < 0.4 or ratio > 5.0:
+            if ratio < 0.90:
+                print(f"  RATIO ({x},{y},{w},{h}) ratio={ratio:.2f}")
+                continue
+            if ratio > 5.0:
+                print(f"  RATIO_MAX ({x},{y},{w},{h}) ratio={ratio:.2f}")
                 continue
             if elongacion > 4.5:
+                print(f"  ELON ({x},{y},{w},{h})")
                 continue
-            if area < 150 or area > 6000:
+            if area < 100 or area > 6000:
+                print(f"  AREA ({x},{y},{w},{h}) area={area}")
                 continue
             if w > 120 or h > 130:
+                print(f"  WH ({x},{y},{w},{h})")
                 continue
+            # ---- Filtro de borde de imagen ----
+            # ---- Filtro de borde de imagen ----
+            img_h, img_w = clean.shape[:2]
+            print(f"img_h={img_h} img_w={img_w}")
+
+            margen = 15
+            margen_superior = 0
+            margen_inferior = 20
+
+            if x < margen or y < margen_superior or (x+w) > (img_w-margen) or (y+h) > (img_h-margen_inferior):
+                continue
+
             
             # ---- Filtro de complejidad de bordes ----
             edges_roi = cv2.Canny(roi, 40, 120)
@@ -191,7 +201,9 @@ if __name__ == "__main__":
                 continue
             if cv2.arcLength(cnt, True) > 500:
                 continue
-
+            # Filtro posición: flechas suelen estar muy abajo en el panel
+            # Elimina ANTISIM_FLECHA anterior y ponlo así:
+            
             # ---- Filtro anti-símbolo (roi binarizado) ----
             # ---- Filtro anti-símbolo (roi binarizado) ----
             roi_bin = cv2.threshold(roi, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)[1]
@@ -203,20 +215,76 @@ if __name__ == "__main__":
                 fill_ratio_bin = area_cnt_bin / float(area)
                 num_vertices_bin = len(cv2.approxPolyDP(
                     cnt_bin, 0.02 * cv2.arcLength(cnt_bin, True), True))
+                print(f"  DIBUJA_CHECK ({x},{y},{w},{h}) ratio={ratio:.2f} area={area} fill={fill_ratio_bin:.2f} vert={num_vertices_bin} w={w} h={h} conts={len(conts_bin)}")
 
-                # Solo rechaza símbolos MUY obvios
+                if ratio < 1.25 and fill_ratio_bin > 0.44 and num_vertices_bin >= 8 and area > 400 and y > img_h * 0.76:
+                    print(f"  ANTISIM_FLECHA ({x},{y},{w},{h})")
+                    continue
+                if ratio > 1.7 and fill_ratio_bin > 0.55 and area < 350:
+                    print(f"  ANTISIM_PALO ({x},{y},{w},{h})")
+                    continue
+                if ratio < 1.15 and area > 400 and num_vertices_bin >= 9 and w > 18 and len(conts_bin) >= 2 and fill_ratio_bin > 0.38:
+                    print(f"  ANTISIM_P ({x},{y},{w},{h})")
+                    continue
+                if area > 2000 and w > 40:
+                    print(f"  ANTISIM_GRANDE ({x},{y},{w},{h})")
+                    continue
                 if fill_ratio_bin > 0.75 and num_vertices_bin <= 4:
+                    print(f"  ANTISIM1 ({x},{y},{w},{h})")
                     continue
-                if area > 2500:
+                if area > 1400 and (num_vertices_bin < 4 or w > 50):
+                    print(f"  ANTISIM3 ({x},{y},{w},{h})")
                     continue
-                if area > 1200 and 0.75 < ratio < 1.3 and fill_ratio_bin < 0.50:
+                if area > 800 and 0.65 < ratio < 1.45 and fill_ratio_bin < 0.55 and w < 26 and num_vertices_bin < 6:
+                    print(f"  ANTISIM2 ({x},{y},{w},{h})")
                     continue
-                # Flecha abajo: cuadrada-ancha + fill bajo + area media
+                
                 if fill_ratio_bin < 0.35 and ratio < 0.95 and area > 750:
+                    print(f"  ANTISIM4 ({x},{y},{w},{h})")
                     continue
-                # P de parking: ancha + fill alto + area grande
                 if fill_ratio_bin > 0.60 and ratio < 0.90 and area > 900:
+                    print(f"  ANTISIM5 ({x},{y},{w},{h})")
                     continue
+                if area > 900 and ratio > 1.8 and fill_ratio_bin < 0.50 and len(conts_bin) == 1:
+                    print(f"  ANTISIM6 ({x},{y},{w},{h})")
+                    continue
+                # Flecha segunda: cuadrada + fill medio + y alto en imagen
+                if area > 500 and 1.0 < ratio < 1.3 and fill_ratio_bin < 0.50 and y > img_h * 0.85:
+                    print(f"  ANTISIM7 ({x},{y},{w},{h})")
+                    continue
+                # Flecha abajo izquierda: ratio < 1 + fill medio + y alto
+                if ratio < 1.10 and area > 1000 and fill_ratio_bin < 0.35:
+                    print(f"  ANTISIM8 ({x},{y},{w},{h})")
+                    continue
+                # Flecha/símbolo con fill alto y pocos vértices
+                if fill_ratio_bin > 0.65 and num_vertices_bin <= 5 and ratio > 1.5:
+                    print(f"  ANTISIM10 ({x},{y},{w},{h})")
+                    continue
+                if w < 12 and ratio > 2.0 and y > img_h * 0.85 and len(conts_bin) >= 2:
+                    print(f"  ANTISIM_FINO ({x},{y},{w},{h})")
+                    continue
+                if area > 800 and fill_ratio_bin <= 0.51 and num_vertices_bin <= 10 and w > img_w * 0.10:
+                    print(f"  ANTISIM_SIM ({x},{y},{w},{h})")
+                    continue
+                if area > 1000 and len(conts_bin) >= 2 and fill_ratio_bin < 0.50 and num_vertices_bin >= 8:
+                    print(f"  ANTISIM_SIM2 ({x},{y},{w},{h})")
+                    continue
+                # ANTISIM6b - sin condición de conts
+                if ratio > 1.8 and area > 500 and fill_ratio_bin < 0.45 and w < 25:
+                    print(f"  ANTISIM6b ({x},{y},{w},{h})")
+                    continue
+                if area > 1000 and h > img_h * 0.45 and fill_ratio_bin < 0.55 and num_vertices_bin <= 11:
+                    print(f"  ANTISIM_ALTO ({x},{y},{w},{h})")
+                    continue
+                if ratio < 1.05 and area > 1000 and fill_ratio_bin < 0.40 and num_vertices_bin <= 9:
+                    print(f"  ANTISIM_CUAD ({x},{y},{w},{h})")
+                    continue
+                if area > 700 and fill_ratio_bin < 0.37 and num_vertices_bin <= 9 and ratio < 1.25 and w > img_w * 0.07:
+                    print(f"  ANTISIM_CUAD2 ({x},{y},{w},{h})")
+                    continue
+
+                print(f"  DIBUJA ({x},{y},{w},{h})")
+                
                 print(f"PASA ({x},{y},{w},{h}) ratio={ratio:.2f} area={area} fill={fill_ratio_bin:.2f} vert={num_vertices_bin}")
 
             # ---- OCR ----
