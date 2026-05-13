@@ -142,7 +142,7 @@ if __name__ == "__main__":
     plot_confusion_matrix(cm, classes, args.classifier)
 
     # Accuracy plot
-    plot_accuracy(acc, args.classifier)
+    #plot_accuracy(acc, args.classifier)
 
     print("\nTiempo medio de predicción (ms):", mean_pred_time)
     print("Tiempo de entrenamiento (s):", t_train)

@@ -118,7 +118,7 @@ def detectar_caracteres(img):
 
 
 if __name__ == "__main__":
-    img = cv2.imread("test_ocr_panels/00057_1.png")
+    img = cv2.imread("test_ocr_panels/00016_0.png")
 
     boxes, img, clean = detectar_caracteres(img)
     print("Caracteres detectados:", len(boxes))
@@ -173,12 +173,15 @@ if __name__ == "__main__":
             print(f"img_h={img_h} img_w={img_w}")
 
             margen = 15
-            margen_superior = 0
-            margen_inferior = 20
+            margen_superior = 1
+            margen_inferior = 30
 
             if x < margen or y < margen_superior or (x+w) > (img_w-margen) or (y+h) > (img_h-margen_inferior):
                 continue
-
+            margen_izq = 22
+            margen_der = 15
+            if x < margen_izq or y < margen_superior or (x+w) > (img_w-margen_der) or (y+h) > (img_h-margen_inferior):
+                continue
             
             # ---- Filtro de complejidad de bordes ----
             edges_roi = cv2.Canny(roi, 40, 120)
@@ -263,24 +266,27 @@ if __name__ == "__main__":
                 if w < 12 and ratio > 2.0 and y > img_h * 0.85 and len(conts_bin) >= 2:
                     print(f"  ANTISIM_FINO ({x},{y},{w},{h})")
                     continue
-                if area > 800 and fill_ratio_bin <= 0.51 and num_vertices_bin <= 10 and w > img_w * 0.10:
+                if area > 800 and fill_ratio_bin <= 0.51 and num_vertices_bin <= 10 and w > img_w * 0.10 and img_w > 300:
                     print(f"  ANTISIM_SIM ({x},{y},{w},{h})")
                     continue
                 if area > 1000 and len(conts_bin) >= 2 and fill_ratio_bin < 0.50 and num_vertices_bin >= 8:
                     print(f"  ANTISIM_SIM2 ({x},{y},{w},{h})")
                     continue
                 # ANTISIM6b - sin condición de conts
-                if ratio > 1.8 and area > 500 and fill_ratio_bin < 0.45 and w < 25:
+                if ratio > 1.8 and area > 500 and fill_ratio_bin < 0.45 and w < 25 and num_vertices_bin <= 4:
                     print(f"  ANTISIM6b ({x},{y},{w},{h})")
                     continue
-                if area > 1000 and h > img_h * 0.45 and fill_ratio_bin < 0.55 and num_vertices_bin <= 11:
+                if area > 800 and h > img_h * 0.45 and fill_ratio_bin < 0.55 and num_vertices_bin <= 11:
                     print(f"  ANTISIM_ALTO ({x},{y},{w},{h})")
                     continue
-                if ratio < 1.05 and area > 1000 and fill_ratio_bin < 0.40 and num_vertices_bin <= 9:
+                if ratio < 1.05 and area > 1000 and fill_ratio_bin < 0.58 and num_vertices_bin <= 9:
                     print(f"  ANTISIM_CUAD ({x},{y},{w},{h})")
                     continue
-                if area > 700 and fill_ratio_bin < 0.37 and num_vertices_bin <= 9 and ratio < 1.25 and w > img_w * 0.07:
+                if area > 700 and fill_ratio_bin < 0.30 and num_vertices_bin <= 9 and ratio < 1.25 and w > img_w * 0.07 and img_w > 280:
                     print(f"  ANTISIM_CUAD2 ({x},{y},{w},{h})")
+                    continue
+                if ratio < 1.05 and area > 1000 and fill_ratio_bin > 0.65 and num_vertices_bin <= 9:
+                    print(f"  ANTISIM_CUAD3 ({x},{y},{w},{h})")
                     continue
 
                 print(f"  DIBUJA ({x},{y},{w},{h})")
