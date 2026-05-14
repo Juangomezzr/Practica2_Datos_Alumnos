@@ -52,7 +52,6 @@ def cargar_dataset(path):
         if not os.path.isdir(folder_path):
             continue
 
-        # Caso 1: dígitos 0–9 (carpeta directa)
         if folder.isdigit():
             key = folder
             images_dict[key] = []
@@ -60,9 +59,8 @@ def cargar_dataset(path):
             for filename in filenames:
                 img = cv2.imread(os.path.join(folder_path, filename))
                 if img is not None:
-                    images_dict[key].append(preprocesar_roi(img))
+                    images_dict[key].append(img)  # sin preprocesar
 
-        # Caso 2: mayúsculas / minúsculas (subcarpeta por letra)
         elif folder in ("may", "min"):
             for sub in os.listdir(folder_path):
                 sub_path = os.path.join(folder_path, sub)
@@ -74,7 +72,7 @@ def cargar_dataset(path):
                 for filename in filenames:
                     img = cv2.imread(os.path.join(sub_path, filename))
                     if img is not None:
-                        images_dict[key].append(preprocesar_roi(img))
+                        images_dict[key].append(img)  # sin preprocesar
 
     return images_dict
 

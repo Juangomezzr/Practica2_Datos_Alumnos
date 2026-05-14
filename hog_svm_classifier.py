@@ -1,4 +1,5 @@
 from fileinput import filename
+from pyexpat import features
 
 import cv2
 import numpy as np
@@ -15,22 +16,26 @@ class HogSvmClassifier(OCRClassifier):
         self.classifier_name = "hog_svm"
 
     def _hog_features(self, img):
-    # Convertir a escala de grises si viene en color
         if len(img.shape) == 3:
             img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-
-    # Asegurar tamaño correcto
+    
+        img = cv2.resize(img, self.ocr_char_size, interpolation=cv2.INTER_AREA)
+    
+    # Mismo preprocesado que train_hog_svm.py
+        img = cv2.threshold(img, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)[1]
+        img = cv2.GaussianBlur(img, (3, 3), 0)
+        img = cv2.equalizeHist(img)
+        img = cv2.copyMakeBorder(img, 2, 2, 2, 2, cv2.BORDER_CONSTANT, value=0)
+    # resize final a 25x25 porque el borde lo dejó en 29x29
         img = cv2.resize(img, self.ocr_char_size)
 
-    # Extraer HoG
         features = hog(
-            img,
-            orientations=9,
-            pixels_per_cell=(5, 5),
-            cells_per_block=(1, 1),
-            visualize=False
+        img,
+        orientations=9,
+        pixels_per_cell=(5, 5),
+        cells_per_block=(1, 1),
+        visualize=False
         )
-
         return features
 
 

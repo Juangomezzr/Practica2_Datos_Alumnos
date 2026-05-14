@@ -5,7 +5,7 @@ import glob
 import time
 import numpy as np
 import matplotlib.pyplot as plt
-from sklearn.metrics import accuracy_score, confusion_matrix
+from sklearn.metrics import accuracy_score, confusion_matrix, classification_report
 import string
 
 from lda_normal_bayes_classifier import LdaNormalBayesClassifier
@@ -132,7 +132,8 @@ if __name__ == "__main__":
     # 5) Métricas
     acc = accuracy_score(true_labels, predicted_labels)
     print(f"\nAccuracy: {acc * 100:.2f}%")
-
+    print("\nReporte por clase:")
+    print(classification_report(true_labels, predicted_labels))
     cm = confusion_matrix(true_labels, predicted_labels)
 
     # Lista de clases
