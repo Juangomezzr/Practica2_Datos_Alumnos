@@ -13,7 +13,6 @@ class PcaKnnClassifier(OCRClassifier):
         self.k = k
 
     def train(self, images_dict):
-        # Extraer características básicas (25x25 → 625)
         C = []
         E = []
 

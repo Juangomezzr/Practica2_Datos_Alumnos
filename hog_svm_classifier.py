@@ -21,12 +21,11 @@ class HogSvmClassifier(OCRClassifier):
     
         img = cv2.resize(img, self.ocr_char_size, interpolation=cv2.INTER_AREA)
     
-    # Mismo preprocesado que train_hog_svm.py
+   
         img = cv2.threshold(img, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)[1]
         img = cv2.GaussianBlur(img, (3, 3), 0)
         img = cv2.equalizeHist(img)
         img = cv2.copyMakeBorder(img, 2, 2, 2, 2, cv2.BORDER_CONSTANT, value=0)
-    # resize final a 25x25 porque el borde lo dejó en 29x29
         img = cv2.resize(img, self.ocr_char_size)
 
         features = hog(

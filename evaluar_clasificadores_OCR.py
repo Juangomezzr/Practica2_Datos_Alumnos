@@ -33,7 +33,7 @@ def cargar_diccionario_imagenes(ruta_directorio):
             images_dict[nombre_carpeta] = [cv2.imread(p) for p in imagenes]
             continue
 
-        # Buscar subcarpetas (may/min)
+        # Buscar subcarpetas
         for subcarpeta in sorted(os.listdir(ruta_carpeta)):
             ruta_sub = os.path.join(ruta_carpeta, subcarpeta)
             if os.path.isdir(ruta_sub):
@@ -45,7 +45,7 @@ def cargar_diccionario_imagenes(ruta_directorio):
 
 
 # ---------------------------------------------------------
-# MATRIZ DE CONFUSIÓN MEJORADA
+# MATRIZ DE CONFUSIÓN
 # ---------------------------------------------------------
 def plot_confusion_matrix(cm, classes, classifier_name):
     plt.figure(figsize=(22, 22))
@@ -142,8 +142,7 @@ if __name__ == "__main__":
     # Matriz de confusión
     plot_confusion_matrix(cm, classes, args.classifier)
 
-    # Accuracy plot
-    #plot_accuracy(acc, args.classifier)
+   
 
     print("\nTiempo medio de predicción (ms):", mean_pred_time)
     print("Tiempo de entrenamiento (s):", t_train)

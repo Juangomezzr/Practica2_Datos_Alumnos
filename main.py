@@ -146,7 +146,7 @@ def visualizar_resultado(img_original, detecciones_finales, resultados_ocr, nomb
                         (0, 0, 255), 1, cv2.LINE_AA)
 
             cx = bx_orig + bw_orig // 2
-            centros.append((cx, cy_medio))  # <-- altura fija para toda la línea
+            centros.append((cx, cy_medio))  
 
     # Línea recta horizontal que une los caracteres
         for i in range(len(centros) - 1):

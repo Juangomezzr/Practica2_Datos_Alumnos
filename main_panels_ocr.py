@@ -124,7 +124,7 @@ def detectar_caracteres_panel(img):
 
 
 # ============================================================
-#  PASO 2: RANSAC iterativo para agrupar caracteres en líneas
+# RANSAC
 # ============================================================
 def ransac_lineas(boxes, umbral_y=20, min_inliers=1, max_iter=100):
     """
@@ -172,7 +172,7 @@ def ransac_lineas(boxes, umbral_y=20, min_inliers=1, max_iter=100):
 
 
 # ============================================================
-#  PASO 3: Clasificar cada carácter y construir el texto
+#   Clasificar cada carácter y construir el texto
 # ============================================================
 def procesar_panel_ocr(img_path, clf):
     img = cv2.imread(img_path)
@@ -181,17 +181,17 @@ def procesar_panel_ocr(img_path, clf):
 
     h_orig, w_orig = img.shape[:2]
 
-    # Paso 1: detectar caracteres
+    # detectar caracteres
     boxes, gray, img_scaled, polaridad = detectar_caracteres_panel(img)
 
-    # Paso 2: agrupar en líneas con RANSAC
+    #  agrupar en líneas con RANSAC
     # umbral_y proporcional al tamaño típico de letra
     alturas = [h for (x, y, w, h) in boxes] if boxes else [20]
     h_media = np.median(alturas) if alturas else 20
     umbral_y = max(15, int(h_media * 0.6))
     lineas = ransac_lineas(boxes, umbral_y=umbral_y, min_inliers=1)
 
-    # Paso 3: clasificar en orden izquierda-derecha, arriba-abajo
+    # clasificar en orden izquierda-derecha, arriba-abajo
     texto_lineas = []
     for linea in lineas:
         texto_linea = ""
@@ -240,7 +240,7 @@ if __name__ == "__main__":
 
     print("Entrenando clasificador LDA+Bayes...")
     ocr_classifier = LdaNormalBayesClassifier(ocr_char_size=(25, 25))
-    # Data augmentation: añadir versiones con ruido y contraste reducido
+    
     train_dict_aug = {}
     for key, imgs in train_dict.items():
         augmented = list(imgs)
@@ -268,7 +268,7 @@ if __name__ == "__main__":
     classes = list('0123456789' + string.ascii_letters)
     plot_confusion_matrix(cm, classes, args.detector)
 
-    # ── Ejercicio 3: OCR paneles → resultado.txt ─────────────────
+    # ── OCR paneles → resultado.txt ─────────────────
     print("\n" + "="*40)
     print("EJERCICIO 3: OCR de paneles recortados")
     print("="*40)

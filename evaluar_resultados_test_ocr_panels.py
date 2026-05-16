@@ -13,12 +13,12 @@ def read_csv_file(file, delim=";"):
         csv_reader = csv.reader(csv_file, delimiter=delim)
         line_count = 0
         for row in csv_reader:
-            #print(row)
+            
             image_name = row[0]
             try:
                 panel_text = row[7]
             except:
-                panel_text = "" # The OCR could fail in this image
+                panel_text = "" 
             if panels_info.get(image_name) is None:
                 panels_info[image_name] = [panel_text]
             else:
@@ -58,15 +58,15 @@ def plot_recognition_distance(p_gt, p):
     for img_name in p_gt:
         p_info_gt = p_gt[img_name]
 
-        if p.get(img_name) is None:  # Not found a panel in this image.
-            txt_distance_all.append(-1) # -1 is not found panel
+        if p.get(img_name) is None: 
+            txt_distance_all.append(-1) 
             continue
 
         p_info = p[img_name]
 
-        # By now we assume only one detection for each image
+        
         plate_gt = p_info_gt[0]
-        if len(p_info) >= 1:  # if we have at least one detection
+        if len(p_info) >= 1: 
             plate = p_info[0]
 
             txt_distance = levenshtein_distance(plate_gt, plate)
@@ -74,7 +74,7 @@ def plot_recognition_distance(p_gt, p):
 
     print(txt_distance_all)
 
-    # Plot histogram
+   
     plt.figure()
     hist, bin_edges = np.histogram(np.array(txt_distance_all),  bins=25, density=False)
     plt.step(bin_edges[:-1], hist, where='mid')
