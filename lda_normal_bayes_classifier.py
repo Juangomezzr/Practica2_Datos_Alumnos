@@ -96,7 +96,6 @@ class LdaNormalBayesClassifier(OCRClassifier):
 
         print("Entrenando clasificador Bayesiano Normal...")
         # 3. Perform Classifier training (OpenCV ml)
-        # REGLA DE ORO DE OPENCV: Las características deben ser obligatoriamente np.float32
         X_reduced_cv = np.array(X_reduced, dtype=np.float32)
         
         self.classifier.train(X_reduced_cv, cv2.ml.ROW_SAMPLE, labels)
