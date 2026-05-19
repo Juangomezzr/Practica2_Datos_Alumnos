@@ -4,9 +4,9 @@ from hog_svm_classifier import HogSvmClassifier
 ##python text_detector_OCR.py
 
 
-# ============================================================
-#  NON-MAXIMUM SUPPRESSION (evita cajas superpuestas)
-# ============================================================
+# ===================================================
+#  non-maximun supresion
+# ===================================================
 def nms(boxes, overlapThresh=0.3):
     if len(boxes) == 0:
         return []
@@ -41,9 +41,7 @@ def nms(boxes, overlapThresh=0.3):
     return [boxes[i] for i in pick]
 
 
-# ============================================================
-#  AGRUPAR CAJAS POR LÍNEAS
-# ============================================================
+
 def agrupar_por_lineas(boxes, umbral=25):
     lineas = []
     boxes_sorted = sorted(boxes, key=lambda b: b[1])
@@ -67,9 +65,9 @@ def agrupar_por_lineas(boxes, umbral=25):
     return lineas
 
 
-# ============================================================
-#  DETECTOR (MSER + Canny + NMS)
-# ============================================================
+# =================================
+#detector (MSER + Canny + NMS)
+# =================================
 def detectar_caracteres(img):
     img = cv2.resize(img, None, fx=1.2, fy=1.2, interpolation=cv2.INTER_LINEAR)
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)

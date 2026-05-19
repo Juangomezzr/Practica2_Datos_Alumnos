@@ -31,9 +31,9 @@ from main_panels_ocr import (
 )
 
 
-# ══════════════════════════════════════════════════════════════════════════════
+#================================================
 #  Entrenar clasificador LDA+Bayes
-# ══════════════════════════════════════════════════════════════════════════════
+#================================================
 def entrenar_clasificador(train_path="train_ocr"):
     print("Cargando datos de entrenamiento...")
     train_dict = cargar_diccionario_imagenes(train_path)
@@ -58,9 +58,9 @@ def entrenar_clasificador(train_path="train_ocr"):
     return clf
 
 
-# ══════════════════════════════════════════════════════════════════════════════
-#  OCR sobre un recorte de panel (imagen BGR ya cargada, no path)
-# ══════════════════════════════════════════════════════════════════════════════
+# ================================
+#  OCR sobre un recorte de panel
+# ================================
 def ocr_sobre_recorte(img_bgr, clf):
     if img_bgr is None or img_bgr.size == 0:
         return "", [], None, []
@@ -158,9 +158,9 @@ def visualizar_resultado(img_original, detecciones_finales, resultados_ocr, nomb
     cv2.destroyAllWindows()
 
 
-# ══════════════════════════════════════════════════════════════════════════════
+# ========================
 #  Pipeline principal
-# ══════════════════════════════════════════════════════════════════════════════
+# ========================
 def detectar_y_leer_paneles(test_path, clf, visualize_ocr=False):
     os.makedirs("Practica1/resultado_imgs", exist_ok=True)
     archivo_resultados = open("Practica1/resultado.txt", "w")
@@ -180,14 +180,14 @@ def detectar_y_leer_paneles(test_path, clf, visualize_ocr=False):
 
         print(f"Procesando: {nombre}")
 
-        # ── Detección de paneles (MSER) ───────────────────────────────────
+        # Detección de paneles (MSER)
         _, eq = preprocesar_imagen(img)
         _, candidatos = obtener_candidatos(mser, eq)
         detecciones = filtrar_detecciones_por_color(img, candidatos, config_color)
         detecciones_finales = nms_maximos_locales(detecciones)
         print(f"  Paneles detectados: {len(detecciones_finales)}")
 
-        # ── OCR sobre cada panel ──────────────────────────────────────────
+        #OCR sobre cada panel
         resultados_ocr = []
         for (x1, y1, x2, y2, score) in detecciones_finales:
             recorte = img[y1:y2, x1:x2]
@@ -199,7 +199,7 @@ def detectar_y_leer_paneles(test_path, clf, visualize_ocr=False):
             linea = f"{nombre};{x1};{y1};{x2};{y2};1;{score:.4f};{texto}\n"
             archivo_resultados.write(linea)
 
-        # ── Guardar imagen con detecciones ────────────────────────────────
+        #Guardar imagen con detecciones
         img_guardada = img.copy()
         for (x1, y1, x2, y2, score) in detecciones_finales:
             cv2.rectangle(img_guardada, (x1, y1), (x2, y2), (0, 255, 0), 2)
@@ -207,7 +207,7 @@ def detectar_y_leer_paneles(test_path, clf, visualize_ocr=False):
                         cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 255), 1, cv2.LINE_AA)
         cv2.imwrite(os.path.join("Practica1/resultado_imgs", nombre), img_guardada)
 
-        # ── Visualización opcional ────────────────────────────────────────
+        #Visualización opcional
         if visualize_ocr:
             visualizar_resultado(img, detecciones_finales, resultados_ocr, nombre)
 
@@ -215,9 +215,9 @@ def detectar_y_leer_paneles(test_path, clf, visualize_ocr=False):
     print("\nFinalizado. Resultados en 'resultado.txt' y 'resultado_imgs/'")
 
 
-# ══════════════════════════════════════════════════════════════════════════════
+#========================
 #  ENTRY POINT
-# ══════════════════════════════════════════════════════════════════════════════
+#========================
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
         description="Detector de paneles MSER + OCR integrado"
@@ -230,8 +230,8 @@ if __name__ == "__main__":
                         help="Mostrar visualización OCR (por defecto False)")
     args = parser.parse_args()
 
-    # 1. Entrenar clasificador OCR
+    #Entrenar clasificador OCR
     clf = entrenar_clasificador(args.train_ocr)
 
-    # 2. Detectar paneles y leer texto
+    #Detectar paneles y leer texto
     detectar_y_leer_paneles(args.test_path, clf, visualize_ocr=args.visualize_ocr)

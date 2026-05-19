@@ -13,7 +13,7 @@ python evaluar_clasificadores_OCR.py --classifier hog_svm   ##Clasificador HOG+S
 
 EJERICIO 3:
 python train_hog_svm.py  ##Entrena el clasificador con los caracteres recortados de train_ocr y guarda el modelo en hog_svm_model.pkl
-python evaluar_resultados_test_ocr_panels.py  ##Evalúa el modelo entrenado en los paneles recortados de test_ocr_panels y muestra la precisión, matriz de confusión e hisotgrama de distancia de Levenshtein
+python evaluar_resultados_test_ocr_panels.py  ##Evalúa el modelo entrenado en los paneles recortados de test_ocr_panels y muestra la precisión, matriz de confusión e histograma de distancia de Levenshtein
 python text_detector_OCR.py  ##Detecta paneles y predice caracteres de una imagen especifica.
 python ocr_classifier.py  ##Implementa el clasificador LDA+Bayes para caracteres OCR, con métodos para entrenar, predecir y convertir entre caracteres y etiquetas.
 """

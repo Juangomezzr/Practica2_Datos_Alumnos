@@ -16,12 +16,10 @@ from skimage.feature import hog
 from hog_svm_classifier import HogSvmClassifier
 
 TRAIN_PATH = "train_ocr"
-MAX_IMGS   = 300   # más muestras que antes (150) → mejor generalización
+MAX_IMGS   = 300
 
 
-# ──────────────────────────────────────────────────────────────
-#  PREPROCESADO CANÓNICO  (idéntico al de procesar_panel_ocr)
-# ──────────────────────────────────────────────────────────────
+
 def preprocesar_roi(img, size=(25, 25)):
     """
     Convierte cualquier ROI (color o gris) al mismo espacio de
@@ -88,7 +86,7 @@ if __name__ == "__main__":
     print("\nEntrenando HOG+SVM (kernel LINEAR, C=10)...")
     clf = HogSvmClassifier()
     clf.svm.setKernel(cv2.ml.SVM_LINEAR)
-    clf.svm.setC(10.0)          # C más alto que por defecto → mejor accuracy
+    clf.svm.setC(10.0)          #usamos un C mas alto que el que está por defecto
     clf.svm.setTermCriteria((cv2.TERM_CRITERIA_MAX_ITER, 1000, 1e-6))
 
     clf.train(train_dict)
