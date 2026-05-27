@@ -4,9 +4,9 @@ from hog_svm_classifier import HogSvmClassifier
 ##python text_detector_OCR.py
 
 
-# ============================================================
-#  NON-MAXIMUM SUPPRESSION (evita cajas superpuestas)
-# ============================================================
+# ===================================================
+#  non-maximun supresion
+# ===================================================
 def nms(boxes, overlapThresh=0.3):
     if len(boxes) == 0:
         return []
@@ -41,9 +41,7 @@ def nms(boxes, overlapThresh=0.3):
     return [boxes[i] for i in pick]
 
 
-# ============================================================
-#  AGRUPAR CAJAS POR LÍNEAS
-# ============================================================
+
 def agrupar_por_lineas(boxes, umbral=25):
     lineas = []
     boxes_sorted = sorted(boxes, key=lambda b: b[1])
@@ -67,9 +65,9 @@ def agrupar_por_lineas(boxes, umbral=25):
     return lineas
 
 
-# ============================================================
-#  DETECTOR (MSER + Canny + NMS)
-# ============================================================
+# =================================
+#detector (MSER + Canny + NMS)
+# =================================
 def detectar_caracteres(img):
     img = cv2.resize(img, None, fx=1.2, fy=1.2, interpolation=cv2.INTER_LINEAR)
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
@@ -89,7 +87,6 @@ def detectar_caracteres(img):
 
             print(f"  MSER ({x},{y},{w},{h}) area={area} ratio={ratio:.2f} -> {'ENTRA' if 150 < area < 5000 and 0.90 < ratio < 5.0 and 8 < w < 70 and 12 < h < 100 else 'FILTRADO'}")
 
-    # ---- Canny complementario ----
     # ---- Canny complementario ----
     edges = cv2.Canny(gray, 40, 120)
     contornos, _ = cv2.findContours(edges, cv2.RETR_CCOMP, cv2.CHAIN_APPROX_SIMPLE)
@@ -167,7 +164,7 @@ if __name__ == "__main__":
             if w > 120 or h > 130:
                 print(f"  WH ({x},{y},{w},{h})")
                 continue
-            # ---- Filtro de borde de imagen ----
+
             # ---- Filtro de borde de imagen ----
             img_h, img_w = clean.shape[:2]
             print(f"img_h={img_h} img_w={img_w}")
@@ -205,9 +202,7 @@ if __name__ == "__main__":
             if cv2.arcLength(cnt, True) > 500:
                 continue
             # Filtro posición: flechas suelen estar muy abajo en el panel
-            # Elimina ANTISIM_FLECHA anterior y ponlo así:
-            
-            # ---- Filtro anti-símbolo (roi binarizado) ----
+   
             # ---- Filtro anti-símbolo (roi binarizado) ----
             roi_bin = cv2.threshold(roi, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)[1]
             conts_bin, _ = cv2.findContours(roi_bin, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
