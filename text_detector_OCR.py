@@ -118,7 +118,7 @@ def detectar_caracteres(img):
 
 
 if __name__ == "__main__":
-    img = cv2.imread("test_ocr_panels/00016_0.png")
+    img = cv2.imread("test_ocr_panels/00058_0.png")
 
     boxes, img, clean = detectar_caracteres(img)
     print("Caracteres detectados:", len(boxes))
